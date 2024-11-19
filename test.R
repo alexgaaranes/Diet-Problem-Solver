@@ -16,3 +16,14 @@ nutritionTable <- data.frame(
   Calcium_mg = c(159, 14.9, 16, 3.3, 3.8, 6.7, 22.7, 121.8, 21.9, 80.2, 6.2, 9.7, 6.8, 3.4, 19.8, 52.4, 21, 10.8, 26.2, 6.7, 3.1, 6.2, 1.2, 202, 291.3, 296.7, 302.3, 24.5, 42.6, 23.8, 9, 2, 11.4, 4.8, 48.6, 0.9, 12.9, 4, 8.2, 18.7, 23.1, 64.6, 220.6, 51.4, 23.5, 7.2, 7.9, 4.9, 13.1, 59.9, 91.7, 3.4, 2.8, 14.2, 10.2, 43.7, 27.1, 33.6, 32.6, 82.8, 27.6, 186, 178.6, 81),
   Iron_mg = c(2.3, 0.3, 0.2, 0.3, 0.1, 0.3, 4.3, 6.2, 1.8, 2.3, 0.6, 0.2, 0.4, 0.1, 0.3, 0.1, 1, 0.7, 0.8, 0.5, 0.1, 0.4, 0, 0.2, 0.1, 0.1, 0.1, 0.7, 0.7, 0.4, 0.6, 0.2, 0.4, 7.5, 4.5, 1.8, 16.8, 1.8, 4.5, 1.6, 47.2, 0.9, 2.4, 2.5, 2.3, 0.3, 0.9, 1, 0.6, 0.4, 0.7, 0.5, 0.8, 0.5, 1.2, 0.4, 1.5, 2.1, 2.2, 2.8, 3.5, 1.5, 0.6, 2)
 )
+
+# TEST RUN
+testRun <- function(){
+  counter <- 0
+  selectedFood <- c("FrozenBroccoli", "Lettuce,Iceberg,Raw","Peppers,Sweet,Raw","Apple,Raw,W/Skin","Kiwifruit,Raw,Fresh","WhiteBread","Carrots,Raw","RoastedChicken","SpaghettiW/Sauce","Banana","Oranges","OatmealCookies","Celery,Raw","Potatoes,Baked","Tomato,Red,Ripe,Raw","Grapes","Bagels","FrozenCorn","Tofu","WheatBread")
+  for(food in selectedFood){
+    counter <- counter + 1
+    print(which(nutritionTable$Foods == food))
+  }
+  print(counter)
+}
