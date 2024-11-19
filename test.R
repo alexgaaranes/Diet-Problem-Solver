@@ -17,13 +17,55 @@ nutritionTable <- data.frame(
   Iron_mg = c(2.3, 0.3, 0.2, 0.3, 0.1, 0.3, 4.3, 6.2, 1.8, 2.3, 0.6, 0.2, 0.4, 0.1, 0.3, 0.1, 1, 0.7, 0.8, 0.5, 0.1, 0.4, 0, 0.2, 0.1, 0.1, 0.1, 0.7, 0.7, 0.4, 0.6, 0.2, 0.4, 7.5, 4.5, 1.8, 16.8, 1.8, 4.5, 1.6, 47.2, 0.9, 2.4, 2.5, 2.3, 0.3, 0.9, 1, 0.6, 0.4, 0.7, 0.5, 0.8, 0.5, 1.2, 0.4, 1.5, 2.1, 2.2, 2.8, 3.5, 1.5, 0.6, 2)
 )
 
+nutritionReq <- data.frame(
+  Nutrients <- c("Calories","Cholesterol","Total Fat","Sodium","Carbohydrates","Dietary Fiber","Protein","Vitamin A","Vitamin C","Calcium","Iron"),
+  Minimum <- c(2000,0,0,0,0,25,50,5000,50,800,10),
+  Maximum <- c(2250,300,65,2400,300,100,100,50000,20000,1600,30)
+)
+
 # TEST RUN
 testRun <- function(){
-  counter <- 0
   selectedFood <- c("FrozenBroccoli", "Lettuce,Iceberg,Raw","Peppers,Sweet,Raw","Apple,Raw,W/Skin","Kiwifruit,Raw,Fresh","WhiteBread","Carrots,Raw","RoastedChicken","SpaghettiW/Sauce","Banana","Oranges","OatmealCookies","Celery,Raw","Potatoes,Baked","Tomato,Red,Ripe,Raw","Grapes","Bagels","FrozenCorn","Tofu","WheatBread")
+  indices = c()
   for(food in selectedFood){
-    counter <- counter + 1
-    print(which(nutritionTable$Foods == food))
+    indices <- append(indices,which(nutritionTable$Foods == food))
   }
-  print(counter)
+  len <- length(indices)
+  
+  # Construct the Tableau based on the selected food
+  tableau <- matrix(ncol=(len*2+24),nrow=0)
+  for(cat in 4:14){
+    eqMax <- c()
+    eqMin <- c()
+    for(i in indices){  # Append the x_i val
+      eqMax <- append(eqMax, nutritionTable[[cat]][i])
+      eqMin <- append(eqMin, nutritionTable[[cat]][i])
+    }
+    slkMax <- c()
+    slkMin <- c()
+    for(s in 1:22){     # Append the max slacks
+      if(s == (((cat-3)*2)-1)) slkMax <- append(slkMax, 1)
+      else slkMax <- append(slkMax, 0)
+      if(s == ((cat-3)*2)) slkMin <- append(slkMin, -1)
+      else slkMin <- append(slkMin, 0)
+    }
+    eqMax <- append(eqMax, c(slkMax,0*(1:len)))
+    eqMax <- append(eqMax, c(0,nutritionReq$Maximum[cat-3]))
+    eqMin <- append(eqMin, c(slkMin,0*(1:len)))
+    eqMin <- append(eqMin, c(0,nutritionReq$Minimum[cat-3]))
+    tableau <- rbind(tableau,eqMax)
+    tableau <- rbind(tableau,eqMin)
+  }
+  
+  for(i in 1:len){
+    eqServ <- c()
+    for(j in 1:len){
+      if(j==i) eqServ <- append(eqServ,1)
+      else eqServ <- append(eqServ,0)
+    }
+    tableau <- rbind(tableau,c(eqServ,0*(1:22),eqServ,0,10))
+  }
+  
+  tableau <- rbind(tableau,c(-1*nutritionTable$Price_Serving[indices],0*(1:(22+len)),1,0))
+  return(tableau)
 }
