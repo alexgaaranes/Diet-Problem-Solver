@@ -31,41 +31,49 @@ testRun <- function(){
     indices <- append(indices,which(nutritionTable$Foods == food))
   }
   len <- length(indices)
-  
   # Construct the Tableau based on the selected food
-  tableau <- matrix(ncol=(len*2+24),nrow=0)
-  for(cat in 4:14){
+  tableau <- matrix(nrow=len+1,ncol=0)
+  acm <- matrix(ncol=(len+1),nrow=0)
+  for(cat in 4:14){ # Nutrition Constraints
     eqMax <- c()
     eqMin <- c()
     for(i in indices){  # Append the x_i val
       eqMax <- append(eqMax, nutritionTable[[cat]][i])
-      eqMin <- append(eqMin, nutritionTable[[cat]][i])
+      eqMin <- append(eqMin, -nutritionTable[[cat]][i])
     }
-    slkMax <- c()
-    slkMin <- c()
-    for(s in 1:22){     # Append the max slacks
-      if(s == (((cat-3)*2)-1)) slkMax <- append(slkMax, 1)
-      else slkMax <- append(slkMax, 0)
-      if(s == ((cat-3)*2)) slkMin <- append(slkMin, -1)
-      else slkMin <- append(slkMin, 0)
-    }
-    eqMax <- append(eqMax, c(slkMax,0*(1:len)))
-    eqMax <- append(eqMax, c(0,nutritionReq$Maximum[cat-3]))
-    eqMin <- append(eqMin, c(slkMin,0*(1:len)))
-    eqMin <- append(eqMin, c(0,nutritionReq$Minimum[cat-3]))
-    tableau <- rbind(tableau,eqMax)
-    tableau <- rbind(tableau,eqMin)
+    acm <- rbind(acm,c(eqMax,nutritionReq$Maximum[cat-3]))
+    acm <- rbind(acm,c(eqMin,-nutritionReq$Minimum[cat-3]))
+    acm <- rbind(acm,c(nutritionTable$Price_Serving[indices],1))
   }
+  obj <- acm[nrow(acm),]  # get the obj function
+  acm <- acm[-c(nrow(acm)),]
   
-  for(i in 1:len){
+  for(i in 1:len){ # Serving Constraints
     eqServ <- c()
     for(j in 1:len){
       if(j==i) eqServ <- append(eqServ,1)
       else eqServ <- append(eqServ,0)
     }
-    tableau <- rbind(tableau,c(eqServ,0*(1:22),eqServ,0,10))
+    acm <- rbind(acm, c(eqServ,10))
+   acm <- rbind(acm,c(-eqServ,0))
   }
+  # Transpose to prepare for Minimization
+  acm <- t(acm)
+  for(i in 1:(ncol(acm))){
+    tableau <- cbind(tableau,c(acm[,i]))  
+  }
+  tableau[nrow(tableau),] <- -tableau[nrow(tableau),]
+  # Attach Slacks
+  for(i in 1:(len+1)){
+      slk <- c()
+      for(j in 1:(len+1)){
+        if(i == j) slk <- append(slk, 1)
+        else slk <- append(slk, 0)
+      }
+      tableau <- cbind(tableau,slk)
+  }
+  obj[length(obj)] <- 0
+  tableau <- cbind(tableau,obj) # attach obj function
   
-  tableau <- rbind(tableau,c(-1*nutritionTable$Price_Serving[indices],0*(1:(22+len)),1,0))
-  return(tableau)
+  return(list(A=tableau,B=t(acm)))
 }

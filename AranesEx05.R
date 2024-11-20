@@ -33,7 +33,7 @@ Simplex <- function(tableau, isMax){
     }
   
     # Get the Basic Solution
-    if(!(isMax || min(tableau[r,])<0)){  # If isMax==F and no more negative at bottom row
+    if(!(isMax || (min(tableau[r,])<0))){  # If isMax==F and no more negative at bottom row
       finalSol <- tableau[r,1:(c-1)]
       finalSol[c-1] <- tableau[r,c]
       return(list(finaltableau=tableau, basicSolution=matrix(
