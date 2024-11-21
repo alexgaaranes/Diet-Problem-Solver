@@ -17,19 +17,13 @@ ui <- page_sidebar(
     ),
     "Diet Plan",
     tableOutput("diet_plan"),
-    textOutput("selected")
 )
 
 # Define server logic required to draw the table 
 server <- function(input, output) {
     output$diet_plan <- renderTable({
-        getDietPlan(input$food_indices)
-    })
-    output$selected <- renderText({
-        data <- ""
-        for(i in input$food_indices){
-            paste(data,as.character(input$food_indices[i]))
-        }
+        indices <- as.numeric(input$food_indices)
+        getDietPlan(indices)
     })
 }
 
