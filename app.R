@@ -1,49 +1,35 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    https://shiny.posit.co/
-#
-
 library(shiny)
+library(bslib)
+source("nutri_table.R") # Source the nutrition table for constrainst and obj func
+source("diet_funcs.R")  # Source the functions that will do the calculations
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
+# Define UI for application that draws the table 
+ui <- page_sidebar(
+    title = "Diet Problem Solver",
+    sidebar = sidebar( # Sidebar for choosing the food
+        width = 300,
+        checkboxGroupInput(
+            "food_indices",
+            "Check the food in your diet",
+            choiceNames = nutritionTable$Foods,
+            choiceValues = 1:(length(nutritionTable$Foods))
         ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
-    )
+    ),
+    "Diet Plan",
+    tableOutput("diet_plan"),
+    textOutput("selected")
 )
 
-# Define server logic required to draw a histogram
+# Define server logic required to draw the table 
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white',
-             xlab = 'Waiting time to next eruption (in mins)',
-             main = 'Histogram of waiting times')
+    output$diet_plan <- renderTable({
+        getDietPlan(input$food_indices)
+    })
+    output$selected <- renderText({
+        data <- ""
+        for(i in input$food_indices){
+            paste(data,as.character(input$food_indices[i]))
+        }
     })
 }
 
