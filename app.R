@@ -25,29 +25,37 @@ ui <- page_sidebar(
 # Define server logic required to draw the table 
 server <- function(input, output) {
     output$optimal_menu <- renderTable({
+        text <- ""
         indices <- as.numeric(input$food_indices)
         result <- data.frame() # Init
         tryCatch(
             {
               # TRY
               message("Fetching result...")
-              result <- getOptimalMenu(indices)$menu
-              
-              #output$optimal_cost <- renderText({
-             #   paste("The cost of this optimal diet is", as.character(result$cost), "per day")
-              #})
-              
+              result <- getOptimalMenu(indices)
+              table <- result$menu
+              cost <- result$cost
+              output$optimal_cost <- renderText({
+                paste(text, "The cost of this optimal diet is",
+                  format(cost),
+                  "per day.")
+              })
+              table
             },
               # CATCH
             error = function(e){
                 message("Encountered an error..")
                 print(e)
-                result <- data.frame(
+                output$optimal_cost <- renderText({
+                  paste(text, "It is not possible to meet the nutritional constraints
+                  with the food that you have selected.")
+                })
+                table <- data.frame(
                     Status = c("Infeasible")
                 )
             },
             finally = {
-                result
+                table
             } 
         )
     })

@@ -107,6 +107,5 @@ getOptimalMenu <- function(indices){
   tableau <- setUpTableau(indices)
   resultList <- Simplex(tableau)
   table <- createTable(indices, nutritionTable,resultList$basicSolution)
-  
   return(list(menu=table, cost=resultList$Z))
 }
