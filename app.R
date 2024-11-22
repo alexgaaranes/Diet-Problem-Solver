@@ -12,18 +12,33 @@ ui <- page_sidebar(
             "food_indices",
             "Check the food in your diet",
             choiceNames = nutritionTable$Foods,
-            choiceValues = 1:(length(nutritionTable$Foods))
+            choiceValues = 1:(length(nutritionTable$Foods)),
+            selected = c(1:20)
         ),
     ),
     "Diet Plan",
-    tableOutput("diet_plan"),
+    tableOutput("diet_plan")
 )
 
 # Define server logic required to draw the table 
 server <- function(input, output) {
     output$diet_plan <- renderTable({
         indices <- as.numeric(input$food_indices)
-        getDietPlan(indices)
+        result <- data.frame() # Init
+        tryCatch(
+            {
+                # TRY
+                message("Fetching result...")
+                result <- getDietPlan(indices)
+            },
+            error = function(e){
+                message("Encountered an error..")
+                print(e)
+            },
+            finally = {
+                result
+            } 
+        )
     })
 }
 

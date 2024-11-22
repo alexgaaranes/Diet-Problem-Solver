@@ -99,26 +99,25 @@ Simplex <- function(tableau, isMax){
 }
 
 
-createTable <- function(sol){
+createTable <- function(indices, nutritionTable, sol){
   len = length(sol)
-  ans = sol[(len-20):len]
+  ans = sol[(len-length(indices)):len]
   opt = sol[len]
   
   Food = c()
   Servings = c()
+  Cost = c()
   for(i in 1:(length(ans)-1)){
     if (ans[i] != 0){
-      Food <- append(Food,i)
+      Food <- append(Food,nutritionTable$Foods[indices[i]])
       Servings <- append(Servings,ans[i])
+      Cost <- append(Cost,ans[i]*nutritionTable$Price_Serving[indices[i]])
     }
   }
-  print(Food)
-  print(Servings)
-  print(opt)
-  df <- data.frame(Food,Servings)
+  df <- data.frame(Food,Servings,Cost)
   return(df)
 }
 
 getDietPlan <- function(indices){
-  return(createTable(Simplex(testRun(indices)$A,F)$basicSolution))
+  return(createTable(indices, nutritionTable$Foods,Simplex(testRun(indices)$A,F)$basicSolution))
 }
