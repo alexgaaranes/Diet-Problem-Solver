@@ -1,6 +1,5 @@
 library(shiny)
 library(bslib)
-source("nutri_table.R") # Source the nutrition table for constrainst and obj func
 source("diet_funcs.R")  # Source the functions that will do the calculations
 
 # Define UI for application that draws the table 
@@ -16,30 +15,43 @@ ui <- page_sidebar(
             selected = c(1:20)
         ),
     ),
-    "Diet Plan",
-    tableOutput("diet_plan")
+    card(
+      "The Optimized Menu",
+      textOutput("optimal_cost"),
+      tableOutput("optimal_menu")
+    )
 )
 
 # Define server logic required to draw the table 
 server <- function(input, output) {
-    output$diet_plan <- renderTable({
+    output$optimal_menu <- renderTable({
         indices <- as.numeric(input$food_indices)
         result <- data.frame() # Init
         tryCatch(
             {
-                # TRY
-                message("Fetching result...")
-                result <- getDietPlan(indices)
+              # TRY
+              message("Fetching result...")
+              result <- getOptimalMenu(indices)$menu
+              
+              #output$optimal_cost <- renderText({
+             #   paste("The cost of this optimal diet is", as.character(result$cost), "per day")
+              #})
+              
             },
+              # CATCH
             error = function(e){
                 message("Encountered an error..")
                 print(e)
+                result <- data.frame(
+                    Status = c("Infeasible")
+                )
             },
             finally = {
                 result
             } 
         )
     })
+    
 }
 
 # Run the application 

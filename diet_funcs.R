@@ -1,7 +1,8 @@
-# Functions 
+# Requires the sourcing of nutri_table.R
+source("nutri_table.R") # Source the nutrition table for constrainst and obj func
 
-# TEST RUN
-testRun <- function(indices){
+# Set Up Tableau Function
+setUpTableau <- function(indices){
   len <- length(indices)
   # Construct the Tableau based on the selected food
   tableau <- matrix(nrow=len+1,ncol=0)
@@ -45,12 +46,12 @@ testRun <- function(indices){
   obj[length(obj)] <- 0
   tableau <- cbind(tableau,obj) # attach obj function
   
-  return(list(A=tableau,B=t(acm)))
+  return(tableau)
 }
 
 
 # SIMPLEX METHOD
-Simplex <- function(tableau, isMax){
+Simplex <- function(tableau){
   r <- nrow(tableau) # Get dimensions
   c <- ncol(tableau)
   
@@ -66,7 +67,7 @@ Simplex <- function(tableau, isMax){
         break;
       }
     }
-    print(tableau)
+  #  print(tableau)
     # Normalize the Pivot Row
     tableau[PR,] <- tableau[PR,]/tableau[PR,PC]
     for(k in 1:r){  # Eliminate A[row,PC] (skip PR)
@@ -74,28 +75,11 @@ Simplex <- function(tableau, isMax){
     }
   
     # Get the Basic Solution
-    if(!(isMax || (min(tableau[r,])<0))){  # If isMax==F and no more negative at bottom row
-      finalSol <- tableau[r,1:(c-1)]
-      finalSol[c-1] <- tableau[r,c]
-      return(list(finaltableau=tableau, basicSolution=matrix(
-        finalSol, nrow=1), Z=tableau[r,c]))
-    }
-    
-    # Maximum format of Basic Solution
-    finalSol <- matrix(ncol=c-1)
-    for(col in 1:(c-1)){
-      targetCol <- tableau[,col]
-      # Check if there's only one non-zero in the column
-      if(length(unique(targetCol))==2 && tableau[order(targetCol)[1],col]==0){
-        finalSol[1,col] <- tableau[order(targetCol)[length(targetCol)],c]  # Get the corresponding solution
-      } else {
-        finalSol[1,col] <- 0  # Value is zero if more than one is non-zero in the col
-      }
-    }
-    print(finalSol)
+    finalSol <- tableau[r,1:(c-1)]
+    finalSol[c-1] <- tableau[r,c]
   }
-  # Only executes if isMax == T
-  return(list(finalTableau=tableau, basicSolution=finalSol, Z=finalSol[1,ncol(finalSol)]))
+  return(list(finaltableau=tableau, basicSolution=matrix(
+  finalSol, nrow=1), Z=tableau[r,c]))
 }
 
 
@@ -114,10 +98,15 @@ createTable <- function(indices, nutritionTable, sol){
       Cost <- append(Cost,ans[i]*nutritionTable$Price_Serving[indices[i]])
     }
   }
+  
   df <- data.frame(Food,Servings,Cost)
   return(df)
 }
 
-getDietPlan <- function(indices){
-  return(createTable(indices, nutritionTable$Foods,Simplex(testRun(indices)$A,F)$basicSolution))
+getOptimalMenu <- function(indices){
+  tableau <- setUpTableau(indices)
+  resultList <- Simplex(tableau)
+  table <- createTable(indices, nutritionTable,resultList$basicSolution)
+  
+  return(list(menu=table, cost=resultList$Z))
 }
