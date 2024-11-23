@@ -55,7 +55,15 @@ Simplex <- function(tableau){
   r <- nrow(tableau) # Get dimensions
   c <- ncol(tableau)
   
+  tab <- c()
+  basSol <- c()
+  
   while(min(tableau[r,])<0){ # Proceed to another iteration if there's a negative value at A[r,]
+    # Get the Basic Solution
+    sol <- tableau[r,1:(c-1)]
+    sol[c-1] <- tableau[r,c]
+    basSol <- append(basSol, sol)
+    
     PC <- order(tableau[r,])[1] # Get the column index of the highest negative magnitude
     
     # Get the row index of smallest positive test ratio
@@ -67,19 +75,20 @@ Simplex <- function(tableau){
         break;
       }
     }
-  #  print(tableau)
+    
     # Normalize the Pivot Row
     tableau[PR,] <- tableau[PR,]/tableau[PR,PC]
     for(k in 1:r){  # Eliminate A[row,PC] (skip PR)
       if(k!=PR) tableau[k,] <- tableau[k,] - tableau[PR,]*tableau[k,PC]
     }
-  
-    # Get the Basic Solution
-    finalSol <- tableau[r,1:(c-1)]
-    finalSol[c-1] <- tableau[r,c]
+    
+    tab <- append(tab, tableau)
   }
+  # Get the Basic Solution
+  finalSol <- tableau[r,1:(c-1)]
+  finalSol[c-1] <- tableau[r,c]
   return(list(finaltableau=tableau, basicSolution=matrix(
-  finalSol, nrow=1), Z=tableau[r,c]))
+  finalSol, nrow=1), Z=tableau[r,c], perIter=list(tab=tab,sol=basSol)))
 }
 
 
