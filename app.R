@@ -10,11 +10,11 @@ ui <- navbarPage( "Diet Problem Solver",
       sidebar = sidebar( # Sidebar for choosing the food
         title = "Food Selection",
         selectInput("presets","Diet Presets",
-                    choice = c("Default","Vegan","Vegetarian","Pescatarian","Ketogenic","Paleo",
-                               "Low-Carb","Low-Fat","High-Protein","Gluten-Free","")
-                    ),
+                    choice = c("Default","Vegan","Vegetarian","Pescatarian","Paleo",
+                               "Gluten-Free","Diabetic")
+        ),
         
-        actionButton("apply","Apply Preset",width="70%"),
+        actionButton("apply","Apply Preset"),
         actionButton("select_all", "Select All"),
         actionButton("unselect_all", "Unselect All"),
         width = 300,
@@ -50,6 +50,7 @@ ui <- navbarPage( "Diet Problem Solver",
 
 # Define server logic required to draw the table 
 server <- function(input, output) {
+  # Global variables
   preset <- c()
   
   # Event handling for inputs
@@ -72,21 +73,27 @@ server <- function(input, output) {
   observeEvent(input$presets, {     # Preset
     preset <<- switch(input$presets,
     "Default" = 1:20,
-    "Vegan" = c(1:6,8,11:19,46:48,53,55:56)
+    "Vegan" = c(1:6,8,11:19,46:48,53,55:56),
+    "Vegetarian" = c(1:6,8,11:19,24:29,46:48,53,55:56),
+    "Pescatarian" = c(1:8,11:19,28:29,35:36,40,46:48,51:52,55),
+    "Paleo" = c(1:3,5:6,9:12,14:15,17,30,33,49,51:52),
+    "Gluten-Free" = c(1:3,9,12:16,24:27,51:52),
+    "Diabetic" = c(1:3,5:6,9,11:12,15:18,26:29,35:36,40,48,51:53)
     )
   })
   
-observeEvent(input$apply,{
-  updateCheckboxGroupInput(
-    getDefaultReactiveDomain(),
-    "food_indices",
-    selected = preset
-  )
-})
+  observeEvent(input$apply,{        # Apply Selected Preset 
+    updateCheckboxGroupInput(
+      getDefaultReactiveDomain(),
+      "food_indices",
+      selected = preset
+    )
+  })
 
   # Reactive Result Display
   output$optimal_menu <- renderTable({
         indices <- as.numeric(input$food_indices)
+        print(indices)
         tryCatch(
             {
               # TRY
