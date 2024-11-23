@@ -1,5 +1,5 @@
 # Requires the sourcing of nutri_table.R
-source("nutri_table.R") # Source the nutrition table for constrainst and obj func
+source("nutri_table.R") # Source the nutrition table for constraints and obj func
 
 # Set Up Tableau Function
 setUpTableau <- function(indices){
