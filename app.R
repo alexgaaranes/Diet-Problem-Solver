@@ -15,22 +15,9 @@ ui <- navbarPage( "Diet Problem Solver",
                     choice = c("Default","Vegan","Vegetarian","Pescatarian","Paleo",
                                "Gluten-Free","Diabetic")
         ),
-        
         actionButton("apply","Apply Preset", class="apply-preset"),
-        
-        div(class="selection-action-buttons",
-          actionButton("select_all", "Select All", class="select-all"),
-          actionButton("unselect_all", "Unselect All", class="unselect-all"),
-            ),
-        
+        actionButton("custom_select","Custom Select", class="custom-select"),
         width = 300,
-        checkboxGroupInput(
-            "food_indices",
-            "",
-            choiceNames = nutritionTable$Foods,
-            choiceValues = 1:(length(nutritionTable$Foods)),
-            selected = 1:20,
-        ),
       ),
       card(
         card_header(
@@ -48,28 +35,44 @@ ui <- navbarPage( "Diet Problem Solver",
   ),
   tabPanel("About",
     
-  )
+  ),
 )
 
 # Define server logic required to draw the table 
 server <- function(input, output) {
-  # Global variables
+  # Server Global Variables
   preset <- c()
-  
-  # Event handling for inputs
-  observeEvent(input$select_all, {  # Select All
-    updateCheckboxGroupInput(
-      getDefaultReactiveDomain(),
-      "food_indices",
-      selected = 1:length(nutritionTable$Foods)
+  selected_food <- reactiveValues(choices = c())
+  checkBox <- checkboxGroupInput(
+          "food_indices",
+          "",
+          choiceNames = nutritionTable$Foods,
+          choiceValues = 1:(length(nutritionTable$Foods)),
+          selected = selected_food,
+          inline = T
       )
-  })
   
-  observeEvent(input$unselect_all,{ # Unselect All
+  # Custom input Modal
+  observeEvent(input$custom_select,{
+    showModal(modalDialog(
+      title="Choose Food in your Diet",
+      
+      div(class="selection-action-buttons",
+        actionButton("select_all", "Select All", class="select-all"),
+        actionButton("unselect_all", "Unselect All", class="unselect-all"),
+      ),
+      
+      checkBox,
+      easyClose = T,
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("apply_button", "Apply")
+      )
+    ))
     updateCheckboxGroupInput(
       getDefaultReactiveDomain(),
       "food_indices",
-      selected = 0
+      selected = selected_food$choices
     )
   })
   
@@ -86,21 +89,52 @@ server <- function(input, output) {
   })
   
   observeEvent(input$apply,{        # Apply Selected Preset 
+    selected_food$choices <- preset
     updateCheckboxGroupInput(
       getDefaultReactiveDomain(),
       "food_indices",
-      selected = preset
+      selected = selected_food$choices
     )
+  })
+  
+  # Event handling for inputs
+  observeEvent(input$select_all, {  # Select All
+    selected_food$choices <- c(1:length(nutritionTable$Foods))    
+    updateCheckboxGroupInput(
+      getDefaultReactiveDomain(),
+      "food_indices",
+      selected = selected_food$choices
+    )
+  })
+  
+  observeEvent(input$unselect_all,{ # Unselect All
+    selected_food$choices <- c(0)
+    updateCheckboxGroupInput(
+      getDefaultReactiveDomain(),
+      "food_indices",
+      selected = selected_food$choices
+    )
+  })
+  
+  observeEvent(input$apply_button,{ # Apply Selected in Modal
+    indices <- as.numeric(input$food_indices)
+    selected_food$choices <- indices
+    updateCheckboxGroupInput(
+      getDefaultReactiveDomain(),
+      "food_indices",
+      selected = selected_food$choices
+    )
+    removeModal()
   })
 
   # Reactive Result Display
   output$optimal_menu <- renderTable({
-        indices <- as.numeric(input$food_indices)
+        c(input$apply_button,input$apply)
         tryCatch(
             {
               # TRY
               message("Fetching result...")
-              result <- getOptimalMenu(indices)
+              result <- getOptimalMenu(selected_food$choices)
               table <- result$menu
               cost <- result$cost
               
@@ -114,18 +148,17 @@ server <- function(input, output) {
                   <br> <b> Cost Breakdown by Food<b>
                   "
                   )
-                
                 HTML(text)
               })
               
               table
             },
-              # CATCH
+            # CATCH
             error = function(e){
                 message("Encountered an error..")
                 print(e)
                 output$optimal_cost <- renderUI({
-                  if (length(indices) == 0){
+                  if (length(selected_food$choices) == 0){
                     text <- paste("<h4 style='color:red;'>No food selected</h4>")
                   } else
                   text <- paste(

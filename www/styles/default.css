@@ -25,3 +25,13 @@ body{
   width: 100%;
   margin-left: 5px;
 }
+
+.custom-select{
+  font-size: 12px;
+  width: 100%;
+}
+
+.checkbox-inline{
+  display: flex;
+  flex-wrap: wrap;
+}
