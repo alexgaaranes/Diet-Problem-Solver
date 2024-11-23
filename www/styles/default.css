@@ -1,0 +1,27 @@
+/*  DEFAULT CSS */
+
+body{
+  
+}
+
+.apply-preset{
+  font-size: 12px;
+  width: 100%;
+}
+
+.selection-action-buttons{
+  display: flex;
+  margin-top: 5px;
+}
+
+.select-all{
+  font-size: 12px;
+  width: 100%;
+  margin-right: 5px;
+}
+
+.unselect-all{
+  font-size: 12px;
+  width: 100%;
+  margin-left: 5px;
+}

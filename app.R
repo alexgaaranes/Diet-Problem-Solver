@@ -4,9 +4,11 @@ source("diet_funcs.R")  # Source the functions that will do the calculations
 
 # Define UI for application that draws the table 
 ui <- navbarPage( "Diet Problem Solver",
+  tags$head(
+    tags$link(rel="stylesheet", type="text/css", href="styles/default.css")
+  ),
   tabPanel( "Solve",
     page_sidebar(
-      
       sidebar = sidebar( # Sidebar for choosing the food
         title = "Food Selection",
         selectInput("presets","Diet Presets",
@@ -14,9 +16,13 @@ ui <- navbarPage( "Diet Problem Solver",
                                "Gluten-Free","Diabetic")
         ),
         
-        actionButton("apply","Apply Preset"),
-        actionButton("select_all", "Select All"),
-        actionButton("unselect_all", "Unselect All"),
+        actionButton("apply","Apply Preset", class="apply-preset"),
+        
+        div(class="selection-action-buttons",
+          actionButton("select_all", "Select All", class="select-all"),
+          actionButton("unselect_all", "Unselect All", class="unselect-all"),
+            ),
+        
         width = 300,
         checkboxGroupInput(
             "food_indices",
@@ -35,9 +41,6 @@ ui <- navbarPage( "Diet Problem Solver",
           tableOutput("optimal_menu")
         )
       ),
-      card(
-        htmlOutput("")
-      )
     )
   ),
   tabPanel("Details",
@@ -93,7 +96,6 @@ server <- function(input, output) {
   # Reactive Result Display
   output$optimal_menu <- renderTable({
         indices <- as.numeric(input$food_indices)
-        print(indices)
         tryCatch(
             {
               # TRY
