@@ -24,7 +24,7 @@ ui <- navbarPage( "Diet Problem Solver",
           actionButton("clear","Clear", class="clear")
         ),
         actionButton("custom_select","View Selection", class="custom-select"),
-        width = "20rem",
+        width = "30%",
       ),
       card(
         card_header(
@@ -156,7 +156,7 @@ server <- function(input, output) {
           table <- result$menu
           cost <- result$cost
           tableau_list <- result$perIter$tab
-          basSol_list <- result$perIter$sol
+          basSol <- result$perIter$sol
           
           colnames(table) <- c("Food","Serving","Cost($)")
           
@@ -176,7 +176,7 @@ server <- function(input, output) {
               lapply(1:length(tableau_list), function(i){
                 card(
                   tableOutput(outputId = paste("table",i,sep="")),
-                  tableOutput(outputId = paste("bassol",i,sep=""))
+                  tableOutput(outputId = paste("basSol",i,sep=""))
                 )
               })
             )
@@ -188,8 +188,8 @@ server <- function(input, output) {
               output[[paste("table",index,sep="")]] <- renderTable({
                 tableau_list[[index]]
               })
-              output[[paste("bassol",index,sep="")]] <- renderTable({
-                 t(basSol_list[[index]])
+              output[[paste("basSol",index,sep="")]] <- renderTable({
+                t(basSol[[index]])
               })
             })
           }
