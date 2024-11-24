@@ -4,9 +4,13 @@ source("diet_funcs.R")  # Source the functions that will do the calculations
 
 # Define UI for application that draws the table 
 ui <- navbarPage( "Diet Problem Solver",
-  tags$head(
+  tags$head( # Styling using class identifier
     tags$link(rel="stylesheet", type="text/css", href="styles/default.css")
   ),
+  tags$style( # Styling for objects
+    HTML("
+    .modal-dialog{width: 80%; max-width: 80%}
+  ")),
   tabPanel( "Solve",
     page_sidebar(
       sidebar = sidebar( # Sidebar for choosing the food
@@ -15,9 +19,12 @@ ui <- navbarPage( "Diet Problem Solver",
                     choice = c("Default","Vegan","Vegetarian","Pescatarian","Paleo",
                                "Gluten-Free","Diabetic")
         ),
-        actionButton("apply","Apply Preset", class="apply-preset"),
-        actionButton("custom_select","Custom Select", class="custom-select"),
-        width = 300,
+        div(class="preset-buttons",
+          actionButton("apply","Apply", class="apply-preset"),
+          actionButton("clear","Clear", class="clear")
+        ),
+        actionButton("custom_select","View Selection", class="custom-select"),
+        width = "30%",
       ),
       card(
         card_header(
@@ -26,7 +33,15 @@ ui <- navbarPage( "Diet Problem Solver",
         card_body(
           htmlOutput("optimal_cost"),
           tableOutput("optimal_menu")
-        )
+        ),
+      ),
+      card(
+        card_header(
+          "Step-by-step"
+        ),
+        card_body(
+          uiOutput("iteration_tableau")
+        ),
       ),
     )
   ),
@@ -36,25 +51,25 @@ ui <- navbarPage( "Diet Problem Solver",
   tabPanel("About",
     
   ),
+  nav_spacer(),
+  nav_item(input_dark_mode(id="mode")),
+  collapsible = T,
+  fluid = T,
+  windowTitle = "Diet Problem Solver"
 )
+
 
 # Define server logic required to draw the table 
 server <- function(input, output) {
   # Server Global Variables
   preset <- c()
   selected_food <- reactiveValues(choices = c())
-  checkBox <- checkboxGroupInput(
-          "food_indices",
-          "",
-          choiceNames = nutritionTable$Foods,
-          choiceValues = 1:(length(nutritionTable$Foods)),
-          selected = selected_food,
-          inline = T
-      )
   
   # Custom input Modal
   observeEvent(input$custom_select,{
     showModal(modalDialog(
+      class="selection-modal",
+      
       title="Choose Food in your Diet",
       
       div(class="selection-action-buttons",
@@ -62,18 +77,38 @@ server <- function(input, output) {
         actionButton("unselect_all", "Unselect All", class="unselect-all"),
       ),
       
-      checkBox,
+      splitLayout(
+        cellWidths = "33.33%",
+        checkBox <- checkboxGroupInput(
+         inputId = "food_indices0",
+         label = "",
+         choiceNames = nutritionTable$Foods[1:22],
+         choiceValues = 1:22,
+         selected = selected_food$choices 
+        ),
+        checkBox <- checkboxGroupInput(
+         inputId = "food_indices1",
+         label = "",
+         choiceNames = nutritionTable$Foods[23:43],
+         choiceValues = 23:43,
+         selected = selected_food$choices
+        ),
+        checkBox <- checkboxGroupInput(
+         inputId = "food_indices2",
+         label = "",
+         choiceNames = nutritionTable$Foods[44:64],
+         choiceValues = 44:64,
+         selected = selected_food$choices 
+        )
+      ),
       easyClose = T,
+      size = "l",
       footer = tagList(
         modalButton("Cancel"),
         actionButton("apply_button", "Apply")
       )
     ))
-    updateCheckboxGroupInput(
-      getDefaultReactiveDomain(),
-      "food_indices",
-      selected = selected_food$choices
-    )
+    updatePartitionSelection(selected_food)
   })
   
   observeEvent(input$presets, {     # Preset
@@ -90,97 +125,148 @@ server <- function(input, output) {
   
   observeEvent(input$apply,{        # Apply Selected Preset 
     selected_food$choices <- preset
-    updateCheckboxGroupInput(
-      getDefaultReactiveDomain(),
-      "food_indices",
-      selected = selected_food$choices
-    )
+    updateSelection(selected_food)
+  })
+  
+  observeEvent(input$clear,{        # Clear Applied Preset
+    selected_food$choices <- c(0)
+    updateSelection(selected_food)
   })
   
   # Event handling for inputs
   observeEvent(input$select_all, {  # Select All
     selected_food$choices <- c(1:length(nutritionTable$Foods))    
-    updateCheckboxGroupInput(
-      getDefaultReactiveDomain(),
-      "food_indices",
-      selected = selected_food$choices
-    )
+    updatePartitionSelection(selected_food)
   })
   
   observeEvent(input$unselect_all,{ # Unselect All
     selected_food$choices <- c(0)
-    updateCheckboxGroupInput(
-      getDefaultReactiveDomain(),
-      "food_indices",
-      selected = selected_food$choices
-    )
+    updatePartitionSelection(selected_food)
   })
   
   observeEvent(input$apply_button,{ # Apply Selected in Modal
-    indices <- as.numeric(input$food_indices)
-    selected_food$choices <- indices
-    updateCheckboxGroupInput(
-      getDefaultReactiveDomain(),
-      "food_indices",
-      selected = selected_food$choices
-    )
+    selected_food$choices <- c(
+      as.numeric(input$food_indices0),
+      as.numeric(input$food_indices1),
+      as.numeric(input$food_indices2))
+    updateSelection(selected_food)
     removeModal()
   })
 
   # Reactive Result Display
   output$optimal_menu <- renderTable({
-        c(input$apply_button,input$apply)
-        tryCatch(
-            {
-              # TRY
-              message("Fetching result...")
-              result <- getOptimalMenu(selected_food$choices)
-              table <- result$menu
-              cost <- result$cost
-              
-              colnames(table) <- c("Food","Serving","Cost($)")
-              
-              output$optimal_cost <- renderUI({
-                text <- paste(
-                  "<h4>The cost of this optimal diet is <b>$",
-                  sprintf("%.2f", cost),
-                  "</b> per day.</h4>
-                  <br> <b> Cost Breakdown by Food<b>
-                  "
-                  )
-                HTML(text)
-              })
-              
-              table
-            },
-            # CATCH
-            error = function(e){
-                message("Encountered an error..")
-                print(e)
-                output$optimal_cost <- renderUI({
-                  if (length(selected_food$choices) == 0){
-                    text <- paste("<h4 style='color:red;'>No food selected</h4>")
-                  } else
-                  text <- paste(
-                    "<h4 style='color:red;'>It is not possible to meet the nutritional constraints
-                    with the food that you have selected.</h4>"
-                    )
-                  
-                  HTML(text)
-                })
-                table <- data.frame(
-                    Status = c("Infeasible")
+      tryCatch(
+        {
+          # TRY
+          message("Fetching result...")
+          result <- getOptimalMenu(selected_food$choices)
+          table <- result$menu
+          cost <- result$cost
+          tableau_list <- result$perIter$tab
+          
+          colnames(table) <- c("Food","Serving","Cost($)")
+          
+          output$optimal_cost <- renderUI({
+            text <- paste(
+              "<h4>The cost of this optimal diet is <b>$",
+              sprintf("%.2f", cost),
+              "</b> per day.</h4>
+              <br> <b> Cost Breakdown by Food<b>
+              "
+              )
+            HTML(text)
+          })
+          
+          output$iteration_tableau <- renderUI({
+            fluidRow(
+              lapply(1:length(tableau_list), function(i){
+                card(
+                  tableOutput(outputId = paste("table",i,sep=""))
                 )
-            },
-            finally = {
-                table
-            } 
-        )
+              })
+            )
+          })
+          
+          for(i in 1:length(tableau_list)){
+            local({
+              index <- i
+              output[[paste("table",index,sep="")]] <- renderTable({
+                tableau_list[[index]]
+              })
+            })
+          }
+          
+          table
+        },
+        # CATCH
+        error = function(e){
+          message("Encountered an error..")
+          print(e)
+          output$optimal_cost <- renderUI({
+            if ((length(selected_food$choices) == 1 && selected_food$choices == c(0)) ||
+                length(selected_food$choices) == 0){
+              text <- paste("<h4 style='color:red;'>No food selected</h4>")
+            } else text <- paste(
+              "<h4 style='color:red;'>It is not possible to meet the nutritional constraints
+              with the food that you have selected.</h4>"
+              )
+            
+            HTML(text)
+          })
+          table <- data.frame(
+              Status = c("Infeasible")
+          )
+        },
+        finally = {
+            table
+        } 
+      )
     },
     striped = T,
     width = "100%",
     bordered = T,
     spacing = "m"
+  )
+}
+
+# Utility Func
+updateSelection <- function(selected_food){
+  updateCheckboxGroupInput(
+    getDefaultReactiveDomain(),
+    "food_indices",
+    selected = selected_food$choices
+  )
+  updateCheckboxGroupInput(
+    getDefaultReactiveDomain(),
+    "food_indices0",
+    selected = selected_food$choices
+  )
+  updateCheckboxGroupInput(
+    getDefaultReactiveDomain(),
+    "food_indices1",
+    selected = selected_food$choices
+  )
+  updateCheckboxGroupInput(
+    getDefaultReactiveDomain(),
+    "food_indices2",
+    selected = selected_food$choices
+  )
+}
+updatePartitionSelection <- function(selected_food){
+  updateCheckboxGroupInput(
+    getDefaultReactiveDomain(),
+    "food_indices0",
+    selected = selected_food$choices
+  )
+  updateCheckboxGroupInput(
+    getDefaultReactiveDomain(),
+    "food_indices1",
+    selected = selected_food$choices
+  )
+  updateCheckboxGroupInput(
+    getDefaultReactiveDomain(),
+    "food_indices2",
+    selected = selected_food$choices
   )
   
 }

@@ -55,8 +55,8 @@ Simplex <- function(tableau){
   r <- nrow(tableau) # Get dimensions
   c <- ncol(tableau)
   
-  tab <- c()
-  basSol <- c()
+  tab <- list()
+  basSol <- list()
   
   while(min(tableau[r,])<0){ # Proceed to another iteration if there's a negative value at A[r,]
     # Get the Basic Solution
@@ -81,8 +81,8 @@ Simplex <- function(tableau){
     for(k in 1:r){  # Eliminate A[row,PC] (skip PR)
       if(k!=PR) tableau[k,] <- tableau[k,] - tableau[PR,]*tableau[k,PC]
     }
-    
-    tab <- append(tab, tableau)
+
+    tab[[length(tab)+1]] = tableau
   }
   # Get the Basic Solution
   finalSol <- tableau[r,1:(c-1)]
@@ -116,5 +116,5 @@ getOptimalMenu <- function(indices){
   tableau <- setUpTableau(indices)
   resultList <- Simplex(tableau)
   table <- createTable(indices, nutritionTable,resultList$basicSolution)
-  return(list(menu=table, cost=resultList$Z))
+  return(list(menu=table, cost=resultList$Z, perIter=resultList$perIter))
 }

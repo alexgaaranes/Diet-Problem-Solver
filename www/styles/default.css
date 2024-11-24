@@ -7,11 +7,22 @@ body{
 .apply-preset{
   font-size: 12px;
   width: 100%;
+  margin-right: 5px;
+}
+
+.clear{
+  font-size: 12px;
+  width: 100%;
+  margin-left: 5px;
 }
 
 .selection-action-buttons{
   display: flex;
   margin-top: 5px;
+}
+
+.preset-buttons{
+  display: flex;
 }
 
 .select-all{
@@ -31,7 +42,7 @@ body{
   width: 100%;
 }
 
-.checkbox-inline{
-  display: flex;
-  flex-wrap: wrap;
+.modal-dialog{
+  width: 80%;
+  max-width: 80%;
 }
