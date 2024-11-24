@@ -24,7 +24,7 @@ ui <- navbarPage( "Diet Problem Solver",
           actionButton("clear","Clear", class="clear")
         ),
         actionButton("custom_select","View Selection", class="custom-select"),
-        width = "30%",
+        width = "20rem",
       ),
       card(
         card_header(
@@ -35,14 +35,7 @@ ui <- navbarPage( "Diet Problem Solver",
           tableOutput("optimal_menu")
         ),
       ),
-      card(
-        card_header(
-          "Step-by-step"
-        ),
-        card_body(
-          uiOutput("iteration_tableau")
-        ),
-      ),
+      uiOutput("iteration_tableau")
     )
   ),
   tabPanel("Details",
@@ -163,6 +156,7 @@ server <- function(input, output) {
           table <- result$menu
           cost <- result$cost
           tableau_list <- result$perIter$tab
+          basSol_list <- result$perIter$sol
           
           colnames(table) <- c("Food","Serving","Cost($)")
           
@@ -181,7 +175,8 @@ server <- function(input, output) {
             fluidRow(
               lapply(1:length(tableau_list), function(i){
                 card(
-                  tableOutput(outputId = paste("table",i,sep=""))
+                  tableOutput(outputId = paste("table",i,sep="")),
+                  tableOutput(outputId = paste("bassol",i,sep=""))
                 )
               })
             )
@@ -192,6 +187,9 @@ server <- function(input, output) {
               index <- i
               output[[paste("table",index,sep="")]] <- renderTable({
                 tableau_list[[index]]
+              })
+              output[[paste("bassol",index,sep="")]] <- renderTable({
+                 t(basSol_list[[index]])
               })
             })
           }

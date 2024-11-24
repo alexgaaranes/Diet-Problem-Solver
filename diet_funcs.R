@@ -62,7 +62,7 @@ Simplex <- function(tableau){
     # Get the Basic Solution
     sol <- tableau[r,1:(c-1)]
     sol[c-1] <- tableau[r,c]
-    basSol <- append(basSol, sol)
+    basSol[[length(basSol)+1]] <- sol
     
     PC <- order(tableau[r,])[1] # Get the column index of the highest negative magnitude
     
