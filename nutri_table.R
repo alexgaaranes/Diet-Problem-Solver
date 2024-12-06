@@ -26,3 +26,5 @@ nutritionReq <- data.frame(
   Minimum <- c(2000,0,0,0,0,25,50,5000,50,800,10),
   Maximum <- c(2250,300,65,2400,300,100,100,50000,20000,1600,30)
 )
+
+foodServingUnits <- c("OzPkg", "CupShredded", "Stalk", "Cup", "Leaf", "Pepper", "Cup", "block", "lb chicken", "Cup", "Tomato", "Fruit,3/Lb,Wo/Rf", "Fruit,Wo/Skn&Seeds", "Fruits,Wo/Rf", "MedFrt,Wo/Skin", "Frt,2-5/8Diam", "Oz", "Sl", "Sl", "Cookie", "Oz", "Cookie", "Pat", "Oz", "C", "C", "C", "LrgEgg", "Egg", "Oz", "Frankfurter", "Sl,6-1/4x4x1/16In", "Sl,6x3-3/4x1/16In", "Oz", "Oz", "Oz", "Oz", "Oz", "Oz", "C", "C", "Slice", "SmallTaco", "Burger", "Hotdog", "Cup", "Cup", "Cup", "Tbsp", "Oz", "Sardines", "Oz", "Oz", "Oz", "Oz", "Oz", "C(8FlOz)", "C(8FlOz)", "C(8FlOz)", "C(8FlOz)", "C(8FlOz)", "C(8FlOz)", "C(8FlOz)", "C(8FlOz)")

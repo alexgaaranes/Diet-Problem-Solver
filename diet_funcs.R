@@ -34,7 +34,7 @@ setUpTableau <- function(indices){
     tableau <- cbind(tableau,c(acm[,i]))  
   }
   tableau[nrow(tableau),] <- -tableau[nrow(tableau),]
-  # Attach Slacks
+  # Attach Slacks (in the case of minimization, the Xs)
   for(i in 1:(len+1)){
       slk <- c()
       for(j in 1:(len+1)){
@@ -43,6 +43,7 @@ setUpTableau <- function(indices){
       }
       tableau <- cbind(tableau,slk)
   }
+  colnames(tableau) <- c(paste("S", 1:(ncol(tableau)-len), sep=""), paste("x", 1:(len), sep=""))
   obj[length(obj)] <- 0
   tableau <- cbind(tableau,obj) # attach obj function
   
@@ -62,7 +63,10 @@ Simplex <- function(tableau){
     # Get the Basic Solution
     sol <- tableau[r,1:(c-1)]
     sol[c-1] <- tableau[r,c]
+    
+    # Track basic sol and tableau per iteration
     basSol[[length(basSol)+1]] <- sol
+    tab[[length(tab)+1]] <- tableau
     
     PC <- order(tableau[r,])[1] # Get the column index of the highest negative magnitude
     
@@ -81,18 +85,23 @@ Simplex <- function(tableau){
     for(k in 1:r){  # Eliminate A[row,PC] (skip PR)
       if(k!=PR) tableau[k,] <- tableau[k,] - tableau[PR,]*tableau[k,PC]
     }
-
-    tab[[length(tab)+1]] = tableau
   }
+  #colnames(tableau) <- c(paste("S", ))
   # Get the Basic Solution
   finalSol <- tableau[r,1:(c-1)]
   finalSol[c-1] <- tableau[r,c]
+  
+  # Last iteration
+  basSol[[length(basSol)+1]] <- finalSol
+  tab[[length(tab)+1]] <- tableau
+  
   return(list(finaltableau=tableau, basicSolution=matrix(
   finalSol, nrow=1), Z=tableau[r,c], perIter=list(tab=tab,sol=basSol)))
 }
 
 
-createTable <- function(indices, nutritionTable, sol){
+# Construct the table to be shown based on the result of the simplex
+createTable <- function(indices, nutritionTable, sol, showUnits){
   len = length(sol)
   ans = sol[(len-length(indices)):len]
   opt = sol[len]
@@ -108,13 +117,24 @@ createTable <- function(indices, nutritionTable, sol){
     }
   }
   
+  # Compute for the value of servings in terms of the given units
+  if(showUnits){
+    servingsWithUnits <- c()
+    for(i in 1:(length(Servings))){
+      servingsWithUnits <- append(servingsWithUnits, paste(
+                            sprintf("%.2f",Servings[i]*nutritionTable$ServingSize[[indices[i]]]),
+                            foodServingUnits[[indices[i]]]))
+    }
+    Servings <- servingsWithUnits
+  }
+  
   df <- data.frame(Food,Servings,Cost)
   return(df)
 }
 
-getOptimalMenu <- function(indices){
+getOptimalMenu <- function(indices, showUnits){
   tableau <- setUpTableau(indices)
   resultList <- Simplex(tableau)
-  table <- createTable(indices, nutritionTable,resultList$basicSolution)
+  table <- createTable(indices, nutritionTable,resultList$basicSolution, showUnits)
   return(list(menu=table, cost=resultList$Z, perIter=resultList$perIter))
 }

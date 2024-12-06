@@ -2,15 +2,12 @@ library(shiny)
 library(bslib)
 source("diet_funcs.R")  # Source the functions that will do the calculations
 
+
 # Define UI for application that draws the table 
 ui <- navbarPage( "Diet Problem Solver",
   tags$head( # Styling using class identifier
     tags$link(rel="stylesheet", type="text/css", href="styles/default.css")
   ),
-  tags$style( # Styling for objects
-    HTML("
-    .modal-dialog{width: 80%; max-width: 80%}
-  ")),
   tabPanel( "Solve",
     page_sidebar(
       sidebar = sidebar( # Sidebar for choosing the food
@@ -24,6 +21,10 @@ ui <- navbarPage( "Diet Problem Solver",
           actionButton("clear","Clear", class="clear")
         ),
         actionButton("custom_select","View Selection", class="custom-select"),
+        checkboxInput(
+          "serving_units",
+          "Show Serving with Units",
+        ),
         width = "30%",
       ),
       card(
@@ -35,14 +36,26 @@ ui <- navbarPage( "Diet Problem Solver",
           tableOutput("optimal_menu")
         ),
       ),
-      uiOutput("iteration_tableau")
+      accordion(
+        accordion_panel(
+          title="Show Tableau per Iteration",
+          uiOutput("iteration_tableau"),
+        ),
+        open = F,
+      )
     )
   ),
-  tabPanel("Details",
-    
+  tabPanel("Info",
+    card(
+      card_header("What does this app do?"),
+      includeHTML("www/templates/info.html")
+    )
   ),
   tabPanel("About",
-    
+    card(
+      card_header("About the developer"),
+      HTML("")
+    )
   ),
   nav_spacer(),
   nav_item(input_dark_mode(id="mode")),
@@ -56,7 +69,7 @@ ui <- navbarPage( "Diet Problem Solver",
 server <- function(input, output) {
   # Server Global Variables
   preset <- c()
-  selected_food <- reactiveValues(choices = c())
+  selected_food <- reactiveValues(choices =c())
   
   # Custom input Modal
   observeEvent(input$custom_select,{
@@ -101,7 +114,7 @@ server <- function(input, output) {
         actionButton("apply_button", "Apply")
       )
     ))
-    updatePartitionSelection(selected_food)
+    updatePartitionSelection(selected_food$choices)
   })
   
   observeEvent(input$presets, {     # Preset
@@ -128,13 +141,13 @@ server <- function(input, output) {
   
   # Event handling for inputs
   observeEvent(input$select_all, {  # Select All
-    selected_food$choices <- c(1:length(nutritionTable$Foods))    
-    updatePartitionSelection(selected_food)
+    selected <- c(1:length(nutritionTable$Foods))    
+    updatePartitionSelection(selected)
   })
   
   observeEvent(input$unselect_all,{ # Unselect All
-    selected_food$choices <- c(0)
-    updatePartitionSelection(selected_food)
+    selected <- c(0)
+    updatePartitionSelection(selected)
   })
   
   observeEvent(input$apply_button,{ # Apply Selected in Modal
@@ -152,7 +165,7 @@ server <- function(input, output) {
         {
           # TRY
           message("Fetching result...")
-          result <- getOptimalMenu(selected_food$choices)
+          result <- getOptimalMenu(selected_food$choices, input$serving_units)
           table <- result$menu
           cost <- result$cost
           tableau_list <- result$perIter$tab
@@ -162,20 +175,24 @@ server <- function(input, output) {
           
           output$optimal_cost <- renderUI({
             text <- paste(
-              "<h4>The cost of this optimal diet is <b>$",
+              "<h4>The cost of this optimal diet is <span style='color: green;'><b>$",
               sprintf("%.2f", cost),
-              "</b> per day.</h4>
+              "</b></span> per day.</h4>
               <br> <b> Cost Breakdown by Food<b>
               "
-              )
+              ,sep="")
             HTML(text)
           })
           
           output$iteration_tableau <- renderUI({
+            len = length(tableau_list)
             fluidRow(
-              lapply(1:length(tableau_list), function(i){
+              lapply(1:len, function(i){ 
                 card(
+                  card_header(paste("Iteration", i)),
+                  ifelse(i==len, "Final Tableau", "Tableau"),
                   tableOutput(outputId = paste("table",i,sep="")),
+                  ifelse(i==len, "Final Solution","Basic Solution"),
                   tableOutput(outputId = paste("basSol",i,sep=""))
                 )
               })
@@ -183,14 +200,12 @@ server <- function(input, output) {
           })
           
           for(i in 1:length(tableau_list)){
-            local({
-              index <- i
-              output[[paste("table",index,sep="")]] <- renderTable({
-                tableau_list[[index]]
-              })
-              output[[paste("basSol",index,sep="")]] <- renderTable({
-                t(basSol[[index]])
-              })
+            index <- i
+            output[[paste("table",index,sep="")]] <- renderTable({
+              tableau_list[[index]]
+            })
+            output[[paste("basSol",index,sep="")]] <- renderTable({
+              t(basSol[[index]])
             })
           }
           
@@ -210,6 +225,11 @@ server <- function(input, output) {
               )
             
             HTML(text)
+          })
+          output$iteration_tableau <- renderUI({
+            HTML(
+              "<p style='color:red;'>No iterations made...</p>"
+            )
           })
           table <- data.frame(
               Status = c("Infeasible")
@@ -250,21 +270,21 @@ updateSelection <- function(selected_food){
     selected = selected_food$choices
   )
 }
-updatePartitionSelection <- function(selected_food){
+updatePartitionSelection <- function(selected_indices){
   updateCheckboxGroupInput(
     getDefaultReactiveDomain(),
     "food_indices0",
-    selected = selected_food$choices
+    selected = selected_indices
   )
   updateCheckboxGroupInput(
     getDefaultReactiveDomain(),
     "food_indices1",
-    selected = selected_food$choices
+    selected = selected_indices
   )
   updateCheckboxGroupInput(
     getDefaultReactiveDomain(),
     "food_indices2",
-    selected = selected_food$choices
+    selected = selected_indices
   )
   
 }

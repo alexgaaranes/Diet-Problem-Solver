@@ -1,0 +1,11 @@
+
+.body{ /* This is a class named body to avoid affecting the whole shiny page */
+  max-width: 75%;
+  margin: auto;
+}
+
+.desc{
+  display: flex;
+  margin: auto;
+}
+
