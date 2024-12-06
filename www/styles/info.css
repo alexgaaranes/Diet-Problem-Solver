@@ -4,8 +4,12 @@
   margin: auto;
 }
 
-.desc{
-  display: flex;
-  margin: auto;
+.healthy-food-img{
+  width: 100%;
+  border: 5px solid rgba(0,0,0,0.3);
+  border-radius: 10px;
 }
 
+.desc{
+  text-align: justify;
+}
