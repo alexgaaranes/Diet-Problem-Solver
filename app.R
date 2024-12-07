@@ -4,11 +4,11 @@ source("diet_funcs.R")  # Source the functions that will do the calculations
 
 
 # Define UI for application that draws the table 
-ui <- navbarPage( "Diet Problem Solver",
+ui <- navbarPage("Diet Problem Solver",
   tags$head( # Styling using class identifier
     tags$link(rel="stylesheet", type="text/css", href="styles/default.css")
   ),
-  nav_panel( "Solve",
+  tabPanel( "Solve",
     page_sidebar(
       sidebar = sidebar( # Sidebar for choosing the food
         title = "Food Selection",
@@ -45,20 +45,21 @@ ui <- navbarPage( "Diet Problem Solver",
       )
     )
   ),
-  nav_panel("Info",
+  tabPanel("Info",
     card(
       card_header("What does this app do?"),
       includeHTML("www/templates/info.html")
     )
   ),
-  nav_panel("About",
+  tabPanel("About",
     card(
-      card_header("Who and Why?"),
+      card_header("Who, why, and when?"),
       includeHTML("www/templates/about.html")
     )
   ),
   nav_spacer(),
   nav_item(input_dark_mode(id="mode", mode=NULL)),
+  selected = "Solve",
   collapsible = T,
   fluid = T,
   windowTitle = "Diet Problem Solver"
@@ -68,7 +69,7 @@ ui <- navbarPage( "Diet Problem Solver",
 server <- function(input, output) {
   # Server Global Variables
   preset <- c()
-  selected_food <- reactiveValues(choices =c())
+  selected_food <- reactiveValues(choices =c(1:20))
   
   # Custom input Modal
   observeEvent(input$custom_select,{
