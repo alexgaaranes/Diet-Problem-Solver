@@ -253,21 +253,7 @@ updateSelection <- function(selected_food){
     "food_indices",
     selected = selected_food$choices
   )
-  updateCheckboxGroupInput(
-    getDefaultReactiveDomain(),
-    "food_indices0",
-    selected = selected_food$choices
-  )
-  updateCheckboxGroupInput(
-    getDefaultReactiveDomain(),
-    "food_indices1",
-    selected = selected_food$choices
-  )
-  updateCheckboxGroupInput(
-    getDefaultReactiveDomain(),
-    "food_indices2",
-    selected = selected_food$choices
-  )
+  updatePartitionSelection(selected_food$choices)
 }
 updatePartitionSelection <- function(selected_indices){
   updateCheckboxGroupInput(
