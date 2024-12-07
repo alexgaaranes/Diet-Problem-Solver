@@ -43,7 +43,7 @@ setUpTableau <- function(indices){
       }
       tableau <- cbind(tableau,slk)
   }
-  colnames(tableau) <- c(paste("S", 1:(ncol(tableau)-len), sep=""), paste("x", 1:(len), sep=""))
+  colnames(tableau) <- c(paste("S", 1:(ncol(tableau)-len-1), sep=""), paste("x", 1:(len), sep=""), "obj")
   obj[length(obj)] <- 0
   tableau <- cbind(tableau,obj) # attach obj function
   

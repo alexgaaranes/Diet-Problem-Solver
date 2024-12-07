@@ -8,7 +8,7 @@ ui <- navbarPage( "Diet Problem Solver",
   tags$head( # Styling using class identifier
     tags$link(rel="stylesheet", type="text/css", href="styles/default.css")
   ),
-  tabPanel( "Solve",
+  nav_panel( "Solve",
     page_sidebar(
       sidebar = sidebar( # Sidebar for choosing the food
         title = "Food Selection",
@@ -45,25 +45,24 @@ ui <- navbarPage( "Diet Problem Solver",
       )
     )
   ),
-  tabPanel("Info",
+  nav_panel("Info",
     card(
       card_header("What does this app do?"),
       includeHTML("www/templates/info.html")
     )
   ),
-  tabPanel("About",
+  nav_panel("About",
     card(
-      card_header("About the developer"),
-      HTML("")
+      card_header("Who and Why?"),
+      includeHTML("www/templates/about.html")
     )
   ),
   nav_spacer(),
-  nav_item(input_dark_mode(id="mode")),
+  nav_item(input_dark_mode(id="mode", mode=NULL)),
   collapsible = T,
   fluid = T,
   windowTitle = "Diet Problem Solver"
 )
-
 
 # Define server logic required to draw the table 
 server <- function(input, output) {

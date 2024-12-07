@@ -1,11 +1,12 @@
 
 .body{ /* This is a class named body to avoid affecting the whole shiny page */
-  max-width: 75%;
+  max-width: 70%;
   margin: auto;
 }
 
 .healthy-food-img{
-  width: 100%;
+  display: block;
+  margin: auto;
   border: 5px solid rgba(0,0,0,0.3);
   border-radius: 10px;
 }
@@ -13,3 +14,4 @@
 .desc{
   text-align: justify;
 }
+
