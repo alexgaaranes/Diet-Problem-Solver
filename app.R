@@ -49,13 +49,13 @@ ui <- navbarPage("Diet Problem Solver",
   tabPanel("Info",
     card(
       card_header("What does this app do?"),
-      includeHTML("www/templates/info.html")
+      includeHTML("www/info.html")
     )
   ),
   tabPanel("About",
     card(
       card_header("Who, why, and when?"),
-      includeHTML("www/templates/about.html")
+      includeHTML("www/about.html")
     )
   ),
   nav_spacer(),
