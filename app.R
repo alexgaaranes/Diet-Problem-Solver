@@ -1,5 +1,6 @@
 library(shiny)
 library(bslib)
+# library(rsconnect)    # Deploy on shinyapps.io (R 4.4.2 is not yet supported lol)
 source("diet_funcs.R")  # Source the functions that will do the calculations
 
 

@@ -1,0 +1,10 @@
+name: diet_problem_solver
+title:
+username: agaaranes
+account: agaaranes
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13545784
+bundleId: 9478094
+url: https://agaaranes.shinyapps.io/diet_problem_solver/
+version: 1
