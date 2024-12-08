@@ -120,10 +120,11 @@ createTable <- function(indices, nutritionTable, sol, showUnits){
   # Compute for the value of servings in terms of the given units
   if(showUnits){
     servingsWithUnits <- c()
-    for(i in 1:(length(Servings))){
+    for(i in 1:(length(ans)-1)){
+      if(ans[i] == 0) next;
       servingsWithUnits <- append(servingsWithUnits, paste(
-                            sprintf("%.2f",Servings[i]*nutritionTable$ServingSize[[indices[i]]]),
-                            foodServingUnits[[indices[i]]]))
+                            sprintf("%.2f",ans[i]*nutritionTable$ServingSize[indices[i]]),
+                            foodServingUnits[indices[i]]))
     }
     Servings <- servingsWithUnits
   }
